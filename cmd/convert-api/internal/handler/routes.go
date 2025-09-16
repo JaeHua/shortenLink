@@ -6,7 +6,7 @@ package handler
 import (
 	"net/http"
 
-	"convert-api/internal/svc"
+	"shortenLink/cmd/convert-api/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
 )

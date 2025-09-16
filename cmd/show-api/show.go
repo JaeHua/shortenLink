@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"github.com/zeromicro/go-zero/rest/httpx"
+	"net/http"
+	"shortenLink/cmd/show-api/internal/errorx"
 
-	"show-api/internal/config"
-	"show-api/internal/handler"
-	"show-api/internal/svc"
+	"shortenLink/cmd/show-api/internal/config"
+	"shortenLink/cmd/show-api/internal/handler"
+	"shortenLink/cmd/show-api/internal/svc"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
@@ -25,7 +30,16 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
-
+	// 注册自定义的错误处理器
+	httpx.SetErrorHandlerCtx(func(ctx context.Context, err error) (int, any) {
+		var e *errorx.CodeError
+		switch {
+		case errors.As(err, &e):
+			return http.StatusOK, e.Data()
+		default:
+			return http.StatusInternalServerError, nil
+		}
+	})
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()
 }

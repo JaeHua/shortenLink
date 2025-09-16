@@ -1,0 +1,2 @@
+{"@timestamp":"2025-09-16T20:15:19.302+08:00","caller":"logic/showlogic.go:40","content":"bloom filter not found","level":"error","short_code":"g"}
+{"@timestamp":"2025-09-16T20:15:20.257+08:00","caller":"logic/showlogic.go:40","content":"bloom filter not found","level":"error","short_code":"favicon.ico"}

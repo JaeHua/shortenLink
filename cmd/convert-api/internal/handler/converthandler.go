@@ -1,15 +1,15 @@
 package handler
 
 import (
-	"net/http"
-
-	"convert-api/internal/logic"
-	"convert-api/internal/svc"
-	"convert-api/internal/types"
+	"github.com/go-playground/validator/v10"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"net/http"
+	"shortenLink/cmd/convert-api/internal/logic"
+	"shortenLink/cmd/convert-api/internal/svc"
+	"shortenLink/cmd/convert-api/internal/types"
 )
 
-// 长链转短链（需鉴权）
 func ConvertHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.ConvertRequest
@@ -17,7 +17,12 @@ func ConvertHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
-
+		// 参数规则校验
+		if err := validator.New().StructCtx(r.Context(), &req); err != nil {
+			logx.Errorw("参数校验失败", logx.Field("error", err.Error()), logx.Field("req", req))
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
 		l := logic.NewConvertLogic(r.Context(), svcCtx)
 		resp, err := l.Convert(&req)
 		if err != nil {

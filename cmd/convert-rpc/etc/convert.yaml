@@ -4,3 +4,25 @@ Etcd:
   Hosts:
   - 127.0.0.1:2379
   Key: convert.rpc
+
+BaseString: abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+ShortUrlDB:
+  DSN: root:jh529529@tcp(127.0.0.1:3306)/url?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+
+ShortUrlBlackList: ["bad", "evil", "hate","api","admin","user","login","register","root","system","config","setting","settings","manage","manager","administrator","superadmin","superuser"]
+
+ShortDomain: jie.cn
+
+CacheRedis:
+  - Host: 127.0.0.1:6379
+
+SequenceRpc:
+  Target: 127.0.0.1:8082
+
+Log:
+  ServiceName: convert-rpc
+  Mode: file
+  Path: logs/convert-rpc
+  Level: info
+  KeepDays: 7

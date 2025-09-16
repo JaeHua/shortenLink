@@ -1,6 +1,17 @@
 Name: sequence.rpc
-ListenOn: 0.0.0.0:8080
+ListenOn: 0.0.0.0:8082
 Etcd:
   Hosts:
   - 127.0.0.1:2379
   Key: sequence.rpc
+SequenceDB:
+  DSN: root:jh529529@tcp(127.0.0.1:3306)/url?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+CacheRedis:
+  - Host: 127.0.0.1:6379
+
+Log:
+  ServiceName: sequence-rpc
+  Mode: file
+  Path: logs/sequence-rpc
+  Level: info
+  KeepDays: 7

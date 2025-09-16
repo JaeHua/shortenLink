@@ -1,0 +1,1 @@
+{"@timestamp":"2025-09-16T20:15:24.089+08:00","caller":"handler/loghandler.go:149","content":"[HTTP] 302 - GET /n - 127.0.0.1:59867 - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36","duration":"13.3ms","level":"info","span":"86b2529a11a6fe16","trace":"89e867807a3d1858942dae97b64e431d"}

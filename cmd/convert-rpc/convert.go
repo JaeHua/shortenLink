@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"shortenLink/pkg/base62"
 
 	"shortenLink/cmd/convert-rpc/internal/config"
 	"shortenLink/cmd/convert-rpc/internal/server"
@@ -23,6 +24,7 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+	base62.MustInit(c.BaseString)
 	ctx := svc.NewServiceContext(c)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {

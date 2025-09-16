@@ -56,15 +56,9 @@ internal/handler/redirect.go：解析 /:code，调用 show-rpc.Resolve，返回 
 internal/svc/servicecontext.go：持有 show-rpc 客户端
 增加访问日志中间件（便于与 Nginx access.log 对齐）
 
-步骤 5：拆分配置
-configs/convert-api.yaml：监听端口、鉴权、ConvertRpc.Endpoints、限流/超时
-configs/convert-rpc.yaml：DB/Redis/BaseString/ShortDomain、黑名单、BloomFilter
-configs/show-api.yaml：监听端口、ShowRpc.Endpoints
-configs/show-rpc.yaml：DB/缓存、降级策略
-（可选）configs/sequence-rpc.yaml：Redis/MySQL 配置、key
 
 
-步骤 6：接入 Nginx 与日志采集
+步骤 5：接入 Nginx 与日志采集
 Nginx 转发短域名到 show-api
 server {
   server_name s.your.com;
@@ -79,7 +73,7 @@ EFK/Prometheus/Grafana
 Filebeat 采集：Nginx access.log、各服务日志
 Prometheus scrape 各服务指标；Grafana 导入看板
 
-步骤 7：部署与联调（最小可用）
+步骤 6：部署与联调（最小可用）
 本地/容器化任选一条：
 本地：分别 go run ./cmd/{convert-api,convert-rpc,show-api,show-rpc}
 Docker：为四个进程各自写 Dockerfile 与 docker-compose.yaml
@@ -95,3 +89,19 @@ curl -X POST http://convert-api:8888/convert -d '{"longUrl":"https://example.com
 
 # 2) 跳转（浏览器访问短域名）
 curl -I http://s.your.com/abc123   # 应返回 301/302 到长链
+
+
+步骤7: 启动项目
+
+启动 MySQL 和 Redis
+启动etcd
+启动 sequence-rpc
+启动 convert-rpc/show-rpc
+启动 convert-api/show-api
+
+$ etcdctl --endpoints=127.0.0.1:2379 get "" --prefix --keys-only
+convert.rpc/7587889526030888455
+
+sequence.rpc/7587889526030888452
+
+show.rpc/7587889526030888459
