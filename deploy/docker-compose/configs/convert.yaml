@@ -1,0 +1,30 @@
+# deploy/docker-compose/configs/convert.yaml
+Name: convert.rpc
+ListenOn: 0.0.0.0:8080
+Etcd:
+  Hosts: ["etcd:2379"]
+  Key: convert.rpc
+
+BaseString: abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+ShortUrlDB:
+  DSN: root:rootpass@tcp(mysql:3306)/url?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+
+# 注意：字段名与代码中的结构体保持一致（ShortUrlBlacklist）
+ShortUrlBlacklist: ["bad","evil","hate","api","admin","user","login","register","root","system","config","setting","settings","manage","manager","administrator","superadmin","superuser"]
+
+ShortDomain: jie.cn
+
+CacheRedis:
+  - Host: redis:6379
+
+# convert-rpc 直连 sequence-rpc 容器
+SequenceRpc:
+  Target: sequence-rpc:8082
+
+Log:
+  ServiceName: convert-rpc
+  Mode: file
+  Path: logs/convert-rpc
+  Level: info
+  KeepDays: 7

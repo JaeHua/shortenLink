@@ -1,0 +1,14 @@
+# deploy/docker-compose/configs/convert-api.yaml
+Name: convert-api
+Host: 0.0.0.0
+Port: 8888
+ConvertRpc:
+  Etcd:
+    Hosts: ["etcd:2379"]
+    Key: convert.rpc
+Log:
+  ServiceName: convert-api
+  Mode: file
+  Path: logs/convert-api
+  Level: info
+  KeepDays: 7

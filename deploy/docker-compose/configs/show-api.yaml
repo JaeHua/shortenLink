@@ -1,0 +1,14 @@
+# deploy/docker-compose/configs/show-api.yaml
+Name: show-api
+Host: 0.0.0.0
+Port: 8889
+ShowRpc:
+  Etcd:
+    Hosts: ["etcd:2379"]
+    Key: show.rpc
+Log:
+  ServiceName: show-api
+  Mode: file
+  Path: logs/show-api
+  Level: info
+  KeepDays: 7

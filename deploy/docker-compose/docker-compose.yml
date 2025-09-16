@@ -1,0 +1,66 @@
+# deploy/docker-compose/docker-compose.yml
+version: "3.9"
+
+networks:
+  shortener: {}
+
+volumes:
+  mysql: {}
+  etcd-data: {}
+  nginx-logs: {}
+
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.15
+    command: ["etcd","--advertise-client-urls=http://0.0.0.0:2379","--listen-client-urls=http://0.0.0.0:2379","--data-dir=/etcd-data"]
+    ports: ["2379:2379"]
+    networks: [shortener]
+    volumes: ["etcd-data:/etcd-data"]
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: url
+    ports: ["3306:3306"]
+    networks: [shortener]
+    volumes: ["mysql:/var/lib/mysql"]
+
+  redis:
+    image: redis:7.2
+    ports: ["6379:6379"]
+    networks: [shortener]
+
+  sequence-rpc:
+    build: { context: ../.., dockerfile: ../docker/sequence-rpc.Dockerfile }
+    networks: [shortener]
+    depends_on: [mysql, etcd]
+
+  convert-rpc:
+    build: { context: ../.., dockerfile: ../docker/convert-rpc.Dockerfile }
+    networks: [shortener]
+    depends_on: [mysql, redis, etcd, sequence-rpc]
+
+  show-rpc:
+    build: { context: ../.., dockerfile: ../docker/show-rpc.Dockerfile }
+    networks: [shortener]
+    depends_on: [mysql, redis, etcd]
+
+  convert-api:
+    build: { context: ../.., dockerfile: ../docker/convert-api.Dockerfile }
+    networks: [shortener]
+    depends_on: [convert-rpc, etcd]
+
+  show-api:
+    build: { context: ../.., dockerfile: ../docker/show-api.Dockerfile }
+    networks: [shortener]
+    depends_on: [show-rpc, etcd]
+
+  nginx:
+    image: nginx:1.27
+    ports: ["80:80"]
+    volumes:
+      - ../nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx-logs:/var/log/nginx
+    networks: [shortener]
+    depends_on: [show-api, convert-api]

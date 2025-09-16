@@ -1,0 +1,22 @@
+# deploy/docker-compose/prometheus/prometheus.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: convert-api
+    static_configs:
+      - targets: ["convert-api:9091"]  # 假设开启 metrics
+
+  - job_name: show-api
+    static_configs:
+      - targets: ["show-api:9091"]
+
+  - job_name: convert-rpc
+    static_configs:
+      - targets: ["convert-rpc:9091"]
+
+  - job_name: show-rpc
+    static_configs:
+      - targets: ["show-rpc:9091"]
+
+  - job_name: sequence-rpc

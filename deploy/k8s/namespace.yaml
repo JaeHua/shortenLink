@@ -1,0 +1,10 @@
+# deploy/k8s/namespaces.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shortener
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability

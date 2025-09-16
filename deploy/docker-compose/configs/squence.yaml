@@ -1,0 +1,19 @@
+# deploy/docker-compose/configs/sequence.yaml
+Name: sequence.rpc
+ListenOn: 0.0.0.0:8082
+Etcd:
+  Hosts: ["etcd:2379"]
+  Key: sequence.rpc
+
+SequenceDB:
+  DSN: root:rootpass@tcp(mysql:3306)/url?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: redis:6379
+
+Log:
+  ServiceName: sequence-rpc
+  Mode: file
+  Path: logs/sequence-rpc
+  Level: info
+  KeepDays: 7

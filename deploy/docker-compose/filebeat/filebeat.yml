@@ -1,0 +1,20 @@
+# deploy/docker-compose/filebeat/filebeat.yml
+filebeat.inputs:
+  - type: filestream
+    id: nginx-access
+    enabled: true
+    paths: ["/var/log/nginx/*.access.log","/var/log/nginx/shortener.access.log","/var/log/nginx/access.log"]
+    fields: { service: nginx, log_type: access }
+
+  - type: filestream
+    id: service-logs
+    enabled: true
+    paths:
+      - /workspace/cmd/*/logs/*/*.log
+    fields: { service: go-zero, log_type: app }
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+
+setup.template.enabled: true
+setup.template.overwrite: true
