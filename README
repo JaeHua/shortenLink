@@ -1,0 +1,97 @@
+步骤 1：准备目录与契约
+创建目录
+api/convert/convert.api
+rpc/convert/convert.proto
+cmd/convert-api/、cmd/convert-rpc/
+api/show/show.api
+rpc/show/show.proto
+cmd/show-api/、cmd/show-rpc/
+可选：rpc/sequence/sequence.proto、cmd/sequence-rpc/
+configs/convert-api.yaml、configs/convert-rpc.yaml、configs/show-api.yaml、configs/show-rpc.yaml
+
+
+步骤 2：生成代码骨架
+生成RPC服务
+# 为 convert 服务生成代码
+goctl rpc protoc rpc/convert/convert.proto --go_out=cmd/convert-rpc --go-grpc_out=cmd/convert-rpc --zrpc_out=cmd/convert-rpc
+
+# 为 show 服务生成代码
+goctl rpc protoc rpc/show/show.proto --go_out=cmd/show-rpc --go-grpc_out=cmd/show-rpc --zrpc_out=cmd/show-rpc
+
+# 为 sequence 服务生成代码（如果存在）
+goctl rpc protoc rpc/sequence/sequence.proto --go_out=cmd/sequence-rpc --go-grpc_out=cmd/sequence-rpc --zrpc_out=cmd/sequence-rpc
+
+生成 API 网关
+# api/convert/convert.api 定义 POST /convert
+goctl api go -api api/convert/convert.api -dir cmd/convert-api
+# api/show/show.api 定义 GET /:code
+goctl api go -api api/show/show.api -dir cmd/show-api
+
+生成model
+goctl model mysql ddl -src db/migrations/short_url_map.sql -dir model -c
+goctl model mysql ddl -src db/migrations/sequence.sql -dir model -c
+
+步骤 3：迁移/实现业务逻辑
+convert-rpc
+将 internal/logic/convertlogic.go 迁移到 cmd/convert-rpc/internal/logic/convertlogic.go
+在 cmd/convert-rpc/internal/svc/servicecontext.go 注入：
+model.ShortUrlMapModel（复用你现有 model/*）
+sequence 实现（本地 sequence/mysql.go 或 sequence/redis.go，或改为调用 sequence-rpc 客户端）
+黑名单、BloomFilter、BaseString、ShortDomain
+在 cmd/convert-rpc/main.go 初始化 base62.MustInit(c.BaseString)
+确保返回 types.ConvertResponse 时包含完整短链或 code（根据你的 API 协议）
+show-rpc
+新建 logic/showlogic.go：根据 shortCode 查 DB/缓存，返回 longUrl
+在 svc/servicecontext.go 注入 model 与只读缓存（可选）
+（可选）sequence-rpc
+实现 Next：调用 Redis INCR 或 MySQL 取号；对外隐藏实现细节
+
+步骤 4：实现网关逻辑（HTTP → RPC）
+convert-api
+internal/handler/convert.go：解析 longUrl、鉴权（中间件）、校验，调用 convert-rpc.Convert，返回 JSON
+internal/svc/servicecontext.go：持有 convert-rpc 客户端
+internal/middleware/：鉴权、限流、签名
+show-api
+internal/handler/redirect.go：解析 /:code，调用 show-rpc.Resolve，返回 301/302 重定向到 longUrl
+internal/svc/servicecontext.go：持有 show-rpc 客户端
+增加访问日志中间件（便于与 Nginx access.log 对齐）
+
+步骤 5：拆分配置
+configs/convert-api.yaml：监听端口、鉴权、ConvertRpc.Endpoints、限流/超时
+configs/convert-rpc.yaml：DB/Redis/BaseString/ShortDomain、黑名单、BloomFilter
+configs/show-api.yaml：监听端口、ShowRpc.Endpoints
+configs/show-rpc.yaml：DB/缓存、降级策略
+（可选）configs/sequence-rpc.yaml：Redis/MySQL 配置、key
+
+
+步骤 6：接入 Nginx 与日志采集
+Nginx 转发短域名到 show-api
+server {
+  server_name s.your.com;
+  access_log /var/log/nginx/shortener.access.log main;
+  location / {
+    proxy_pass http://show-api:8080;  # show-api 对外 HTTP
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+}
+EFK/Prometheus/Grafana
+Filebeat 采集：Nginx access.log、各服务日志
+Prometheus scrape 各服务指标；Grafana 导入看板
+
+步骤 7：部署与联调（最小可用）
+本地/容器化任选一条：
+本地：分别 go run ./cmd/{convert-api,convert-rpc,show-api,show-rpc}
+Docker：为四个进程各自写 Dockerfile 与 docker-compose.yaml
+K8s：为四个进程写 Deployment/Service/HPA
+启动顺序（示例）：
+MySQL、Redis
+convert-rpc、show-rpc（以及 sequence-rpc 如果使用）
+convert-api、show-api
+Nginx
+
+# 1) 转链（需鉴权，示例略）
+curl -X POST http://convert-api:8888/convert -d '{"longUrl":"https://example.com"}' -H 'Content-Type: application/json'
+
+# 2) 跳转（浏览器访问短域名）
+curl -I http://s.your.com/abc123   # 应返回 301/302 到长链

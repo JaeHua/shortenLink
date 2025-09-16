@@ -1,0 +1,25 @@
+syntax = "v1"
+
+info (
+	title:   "Shortener Convert API"
+	desc:    "对外转链接口（鉴权、参数校验、转发到 convert-rpc）"
+	author:  "jaehua"
+	email:   "2195821921@email.com"
+	version: "1.0.0"
+)
+
+type (
+	ConvertRequest {
+		LongUrl string `json:"longUrl" validate:"required,url"`
+	}
+	ConvertResponse {
+		ShortUrl string `json:"shortUrl"`
+	}
+)
+
+service convert-api {
+	@doc "长链转短链（需鉴权）"
+	@handler ConvertHandler
+	post /convert (ConvertRequest) returns (ConvertResponse)
+}
+

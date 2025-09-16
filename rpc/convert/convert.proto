@@ -1,0 +1,9 @@
+// rpc/convert/convert.proto
+syntax = "proto3";
+package convert;
+option go_package = "shortenLink/rpc/convert";
+service Convert {
+  rpc Convert(ConvertRequest) returns (ConvertResponse);
+}
+message ConvertRequest { string longUrl = 1; }
+message ConvertResponse { string shortUrl = 1; }

@@ -1,0 +1,9 @@
+// rpc/show/show.proto
+syntax = "proto3";
+package show;
+option go_package = "shortenLink/rpc/show";
+service Show {
+  rpc Show(ShowRequest) returns (ShowResponse);
+}
+message ShowRequest { string shortCode = 1; }
+message ShowResponse { string longUrl = 1; }

@@ -1,0 +1,26 @@
+syntax = "v1"
+
+info (
+	title:   "Shortener Show API"
+	desc:    "短链访问入口（Nginx 转发到此，内部调用 show-rpc 并重定向）"
+	author:  "jaehua"
+	email:   "2195821921email.com"
+	version: "1.0.0"
+)
+
+type (
+	ShowRequest {
+		ShortUrl string `path:"shortUrl" validate:"required"`
+	}
+	// 一般由 handler 内部做 301/302 重定向；定义返回类型以便生成代码
+	ShowResponse {
+		LongUrl string `json:"longUrl"`
+	}
+)
+
+service show-api {
+	@doc "根据短链 ShortUrl 跳转到长链"
+	@handler ShowHandler
+	get /:shortUrl (ShowRequest) returns (ShowResponse)
+}
+

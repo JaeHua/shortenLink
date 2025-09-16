@@ -1,0 +1,7 @@
+// rpc/sequence/sequence.proto
+syntax = "proto3";
+package sequence;
+option go_package = "shortenLink/rpc/sequence";
+service Sequence { rpc Next(Empty) returns (NextResp); }
+message Empty {}
+message NextResp { uint64 value = 1; }
