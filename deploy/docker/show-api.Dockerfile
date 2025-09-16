@@ -1,5 +1,5 @@
 # deploy/docker/show-api.Dockerfile
-FROM golang:1.22-alpine AS builder
+FROM golang:1.24-alpine AS builder
 WORKDIR /src
 COPY . .
 RUN go build -trimpath -ldflags="-s -w" -o /out/show-api cmd/show-api/show.go

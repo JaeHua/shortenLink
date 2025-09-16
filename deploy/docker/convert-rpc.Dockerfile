@@ -1,5 +1,5 @@
 # deploy/docker/convert-rpc.Dockerfile
-FROM golang:1.22-alpine AS builder
+FROM golang:1.24-alpine AS builder
 WORKDIR /src
 COPY . .
 RUN go build -trimpath -ldflags="-s -w" -o /out/convert-rpc cmd/convert-rpc/convert.go
