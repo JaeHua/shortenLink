@@ -1,20 +1,22 @@
-# deploy/docker-compose/filebeat/filebeat.yml
 filebeat.inputs:
   - type: filestream
     id: nginx-access
     enabled: true
-    paths: ["/var/log/nginx/*.access.log","/var/log/nginx/shortener.access.log","/var/log/nginx/access.log"]
-    fields: { service: nginx, log_type: access }
-
-  - type: filestream
-    id: service-logs
-    enabled: true
     paths:
-      - /workspace/cmd/*/logs/*/*.log
-    fields: { service: go-zero, log_type: app }
+      - /var/log/nginx/shortener.access.log
+      - /var/log/nginx/access.log
+    parsers:
+      - ndjson:
+          overwrite_keys: true
+          add_error_key: true
+    fields:
+      service: nginx
+      log_type: access
+    fields_under_root: true
 
 output.elasticsearch:
   hosts: ["http://elasticsearch:9200"]
+  pipeline: "nginx-shortener"   # 直接引用上面自动创建的 pipeline
 
 setup.template.enabled: true
 setup.template.overwrite: true

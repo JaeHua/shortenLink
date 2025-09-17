@@ -66,3 +66,57 @@ services:
       - nginx-logs:/var/log/nginx
     networks: [shortener]
     depends_on: [show-api, convert-api]
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.1
+    environment: ["ELASTICSEARCH_HOSTS=http://elasticsearch:9200"]
+    ports: ["5601:5601"]
+    networks: [shortener]
+    depends_on: [elasticsearch]
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.1
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports: ["9200:9200"]
+    networks: [shortener]
+    volumes: ["esdata:/usr/share/elasticsearch/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9200 >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # 一次性初始化：创建 ingest pipeline
+  es-setup:
+    image: curlimages/curl:8.10.1
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./filebeat/pipeline-nginx-shortener.json:/pipeline.json:ro
+    entrypoint:
+      - sh
+      - -c
+      - |
+        echo "waiting a bit for ES to be ready..." && sleep 3
+        curl -sS -X PUT "http://elasticsearch:9200/_ingest/pipeline/nginx-shortener" \
+          -H 'Content-Type: application/json' \
+          --data-binary @/pipeline.json \
+          && echo "pipeline installed"
+    networks: [shortener]
+    restart: "no"
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.14.1
+    user: root
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      es-setup:
+        condition: service_completed_successfully
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - nginx-logs:/var/log/nginx
+    networks: [shortener]

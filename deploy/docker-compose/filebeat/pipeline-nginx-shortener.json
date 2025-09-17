@@ -1,0 +1,22 @@
+{
+  "description": "Parse nginx json log for shortener",
+  "processors": [
+    { "set": { "field": "event.module", "value": "nginx" } },
+    { "date": { "field": "@timestamp", "formats": ["ISO8601"] } },
+
+    { "grok": { "field": "uri", "patterns": [ "^/%{WORD:short_code}(?:\\b|/|\\?|#|$)" ], "ignore_failure": true } },
+
+    { "set": { "field": "is_convert", "value": true, "if": "ctx.uri != null && ctx.uri.startsWith('/convert')" } },
+
+    { "geoip": { "field": "remote_addr", "target_field": "geo", "ignore_missing": true } },
+    { "user_agent": { "field": "user_agent", "target_field": "ua", "ignore_missing": true } },
+
+    { "gsub": { "field": "upstream_response_time", "pattern": "^-?$", "replacement": "" , "ignore_missing": true } },
+    { "gsub": { "field": "upstream_status", "pattern": "^-?$", "replacement": "" , "ignore_missing": true } },
+
+    { "convert": { "field": "status", "type": "long", "ignore_missing": true } },
+    { "convert": { "field": "upstream_status", "type": "long", "ignore_missing": true } },
+    { "convert": { "field": "request_time", "type": "float", "ignore_missing": true } },
+    { "convert": { "field": "upstream_response_time", "type": "float", "ignore_missing": true } }
+  ]
+}
