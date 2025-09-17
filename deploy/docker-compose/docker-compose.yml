@@ -11,7 +11,7 @@ volumes:
 services:
   etcd:
     image: quay.io/coreos/etcd:v3.5.15
-    command: ["etcd","--advertise-client-urls=http://0.0.0.0:2379","--listen-client-urls=http://0.0.0.0:2379","--data-dir=/etcd-data"]
+    command: ["etcd","--advertise-client-urls=http://etcd:2379","--listen-client-urls=http://0.0.0.0:2379","--data-dir=/etcd-data"]
     ports: ["2379:2379"]
     networks: [shortener]
     volumes: ["etcd-data:/etcd-data"]
@@ -23,7 +23,10 @@ services:
       MYSQL_DATABASE: url
     ports: ["3306:3306"]
     networks: [shortener]
-    volumes: ["mysql:/var/lib/mysql"]
+    volumes:
+      - mysql:/var/lib/mysql  # 数据持久化
+      - /home/shortenLink/db/migrations:/docker-entrypoint-initdb.d  # 挂载SQL文件目录
+    command: --default-time-zone='Asia/Shanghai'
 
   redis:
     image: redis:7.2

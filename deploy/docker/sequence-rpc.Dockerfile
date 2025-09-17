@@ -24,7 +24,8 @@ RUN go build -trimpath -ldflags="-s -w" -o /out/sequence-rpc cmd/sequence-rpc/se
 FROM alpine:3.20
 
 WORKDIR /app
-
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Shanghai
 # 拷贝编译好的二进制
 COPY --from=builder /out/sequence-rpc /app/sequence-rpc
 COPY deploy/docker-compose/configs/sequence.yaml /app/etc/sequence.yaml

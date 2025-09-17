@@ -16,7 +16,8 @@ RUN go build -trimpath -ldflags="-s -w" -o /out/convert-rpc cmd/convert-rpc/conv
 # -------- Runtime Stage --------
 FROM alpine:3.20
 WORKDIR /app
-
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Shanghai
 COPY --from=builder /out/convert-rpc /app/convert-rpc
 COPY deploy/docker-compose/configs/convert.yaml /app/etc/convert.yaml
 
