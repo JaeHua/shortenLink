@@ -1,4 +1,3 @@
-# deploy/docker-compose/docker-compose.yml
 version: "3.9"
 
 networks:
@@ -32,27 +31,27 @@ services:
     networks: [shortener]
 
   sequence-rpc:
-    build: { context: ../.., dockerfile: ../docker/sequence-rpc.Dockerfile }
+    build: { context: ../.., dockerfile: deploy/docker/sequence-rpc.Dockerfile }
     networks: [shortener]
     depends_on: [mysql, etcd]
 
   convert-rpc:
-    build: { context: ../.., dockerfile: ../docker/convert-rpc.Dockerfile }
+    build: { context: ../.., dockerfile: deploy/docker/convert-rpc.Dockerfile }
     networks: [shortener]
     depends_on: [mysql, redis, etcd, sequence-rpc]
 
   show-rpc:
-    build: { context: ../.., dockerfile: ../docker/show-rpc.Dockerfile }
+    build: { context: ../.., dockerfile: deploy/docker/show-rpc.Dockerfile }
     networks: [shortener]
     depends_on: [mysql, redis, etcd]
 
   convert-api:
-    build: { context: ../.., dockerfile: ../docker/convert-api.Dockerfile }
+    build: { context: ../.., dockerfile: deploy/docker/convert-api.Dockerfile }
     networks: [shortener]
     depends_on: [convert-rpc, etcd]
 
   show-api:
-    build: { context: ../.., dockerfile: ../docker/show-api.Dockerfile }
+    build: { context: ../.., dockerfile: deploy/docker/show-api.Dockerfile }
     networks: [shortener]
     depends_on: [show-rpc, etcd]
 
