@@ -25,7 +25,7 @@ services:
     networks: [shortener]
     volumes:
       - mysql:/var/lib/mysql  # 数据持久化
-      - /home/shortenLink/db/migrations:/docker-entrypoint-initdb.d  # 挂载SQL文件目录
+      - ../../db/migrations:/docker-entrypoint-initdb.d  # 挂载SQL文件目录
     command: --default-time-zone='Asia/Shanghai'
 
   redis:
@@ -83,7 +83,7 @@ services:
     networks: [shortener]
     volumes: ["esdata:/usr/share/elasticsearch/data"]
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9200 >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "curl -s -f http://localhost:9200 >/dev/null  || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 30
